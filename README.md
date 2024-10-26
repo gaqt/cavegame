@@ -6,7 +6,7 @@ in C with raylib
 
 ### TODO
 
-[ ] side collisions
-[ ] block placing
-[ ] world y wrap
-[ ] fix gravity collisions
+- [ ] side collisions
+- [ ] block placing
+- [ ] world y wrap
+- [ ] fix gravity collisions
