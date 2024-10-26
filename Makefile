@@ -1,13 +1,14 @@
 LIBS=-lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-SRCS=src/main.c src/button.c
-FLAGS=-Wall -Wextra -Wpedantic
+SRCS=src/main.c
+CFLAGS=-Wall -Wextra -Wpedantic
+EXECUTABLE=cavegame
 
 build:
-	cc -o logalc $(SRCS) $(LIBS) $(FLAGS) -O3
+	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O3
 
 run: build
-	./logalc
+	./$(EXECUTABLE)
 
 debug:
-	cc -o logalc $(SRCS) $(LIBS) $(FLAGS) -O0 -ftrapv
-	./logalc
+	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O0 -ftrapv -D DEBUG
+	./$(EXECUTABLE)
