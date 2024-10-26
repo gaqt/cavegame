@@ -9,4 +9,5 @@ in C with raylib
 - [ ] side collisions
 - [ ] block placing
 - [ ] world y wrap
-- [ ] fix gravity collisions
+- [X] fix gravity collisions
+- [X] walk sideways

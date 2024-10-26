@@ -2,6 +2,7 @@
 #include "../lib/raylib/rcamera.h"
 #include <math.h>
 #include <raylib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -27,7 +28,7 @@ typedef enum {
     CLAY,
 } BlockMaterial;
 
-const Color BlockMaterialColor(const BlockMaterial m) {
+__attribute__((const)) Color BlockMaterialColor(const BlockMaterial m) {
     switch (m) {
     case AIR:
         return (Color){0, 0, 0, 0};
@@ -51,11 +52,12 @@ const Color BlockMaterialColor(const BlockMaterial m) {
     exit(-1);
 }
 
-const float Vec3Dist(const Vector3 a, const Vector3 b) {
+__attribute__((const)) float Vec3Dist(const Vector3 a, const Vector3 b) {
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2));
 }
 
-const Vector3 CameraRotUnit(const Vector3 pos, const Vector3 target) {
+__attribute__((const)) Vector3 CameraRotUnit(const Vector3 pos,
+                                             const Vector3 target) {
     Vector3 rot =
         (Vector3){target.x - pos.x, target.y - pos.y, target.z - pos.z};
 
@@ -65,8 +67,8 @@ const Vector3 CameraRotUnit(const Vector3 pos, const Vector3 target) {
 int main() {
     srand(time(NULL));
 
-    const int width = 800;
-    const int height = 600;
+    const int width = 1000;
+    const int height = 800;
 
     InitWindow(width, height, "logemi's cavegame");
     SetTargetFPS(60);
@@ -91,7 +93,7 @@ int main() {
     camera.fovy = 80.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
-    float velocityY = 0;
+    Vector3 velocity = {0, 0, 0};
 
     DisableCursor();
     SetTargetFPS(60);
@@ -104,44 +106,78 @@ int main() {
 #define POSY (camera.position.y + 0.5f)
 #define POSZ (camera.position.z + 0.5f)
 
-        Vector3 camRot = CameraRotUnit(camera.position, camera.target);
-
         // check if standing on ground
         bool standing;
-        if (POSX > 0 && POSX < WORLD_X && POSY > 0 && POSY < WORLD_Y &&
-            POSZ > 0 && POSZ < WORLD_Z &&
-            world[(int)POSX][(int)POSY - 2][(int)POSZ]) {
+        if (velocity.y <= 0.01 && POSX > 0 && POSX < WORLD_X && POSY > 0 &&
+            POSY < WORLD_Y && POSZ > 0 && POSZ < WORLD_Z &&
+            world[(int)POSX][(int)(POSY - 1.5f)][(int)POSZ]) {
 
             standing = true;
-            velocityY = 0;
+            velocity.y = 0;
+            float delta = 0.49f - (POSY - floor(POSY));
+            camera.position.y += delta;
+            camera.target.y += delta;
         } else {
             standing = false;
-            velocityY -= GRAVITY;
-            if (velocityY < -MAX_SPEED)
-                velocityY = -MAX_SPEED;
+            velocity.y -= GRAVITY;
+            if (velocity.y < -MAX_SPEED)
+                velocity.y = -MAX_SPEED;
         }
 
-        UpdateCameraPro(
-            &camera,
-            (Vector3){
-                (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) *
-                        WALK_SPEED - // Move forward-backward
-                    (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) * WALK_SPEED,
-                (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) *
-                        WALK_SPEED - // Move right-left
-                    (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) * WALK_SPEED,
-                0.0f // Move up-down
-            },
-            (Vector3){
-                GetMouseDelta().x * CAMERA_SENS, // Rotation: yaw
-                GetMouseDelta().y * CAMERA_SENS, // Rotation: pitch
-                0.0f                             // Rotation: roll
-            },
-            0);
+        Vector3 camRot = CameraRotUnit(camera.position, camera.target);
+
+        if (standing) {
+            velocity.x = 0.0f;
+            velocity.z = 0.0f;
+
+            float invr =
+                1.0f /
+                cosf(asinf(fabsf(fminf(0.999f, fmaxf(-0.999f, camRot.y)))));
+            float vx = invr * camRot.x;
+            float vz = invr * camRot.z;
+
+            if (IsKeyDown(KEY_W)) {
+                velocity.x += vx * WALK_SPEED;
+                velocity.z += vz * WALK_SPEED;
+            }
+
+            if (IsKeyDown(KEY_S)) {
+                velocity.x += -vx * WALK_SPEED;
+                velocity.z += -vz * WALK_SPEED;
+            }
+
+            if (IsKeyDown(KEY_A)) {
+                float theta2 = atan2f(vx, vz) + M_PI / 2.0f;
+                velocity.x += sinf(theta2) * WALK_SPEED;
+                velocity.z += cosf(theta2) * WALK_SPEED;
+            }
+
+            if (IsKeyDown(KEY_D)) {
+                float theta2 = atan2f(vx, vz) - M_PI / 2.0f;
+                velocity.x += sinf(theta2) * WALK_SPEED;
+                velocity.z += cosf(theta2) * WALK_SPEED;
+            }
+
+            if (IsKeyDown(KEY_SPACE)) {
+                velocity.y += 0.20f;
+            }
+        }
+
+        UpdateCameraPro(&camera, (Vector3){0, 0, 0},
+                        (Vector3){
+                            GetMouseDelta().x * CAMERA_SENS, // Rotation: yaw
+                            GetMouseDelta().y * CAMERA_SENS, // Rotation: pitch
+                            0.0f                             // Rotation: roll
+                        },
+                        0);
 
         // update velocity
-        camera.position.y += velocityY;
-        camera.target.y += velocityY;
+        camera.position.x += velocity.x;
+        camera.position.y += velocity.y;
+        camera.position.z += velocity.z;
+        camera.target.x += velocity.x;
+        camera.target.y += velocity.y;
+        camera.target.z += velocity.z;
 
         // ray march to check for target block
         Vector3 targetBlock = {camera.position.x + 1000, 0, 0};
@@ -196,11 +232,6 @@ int main() {
 
                     DrawCube((Vector3){x, y, z}, 1, 1, 1,
                              BlockMaterialColor(world[x][y][z]));
-
-                    RayCollision rayCollision = GetRayCollisionBox(
-                        cameraRay,
-                        (BoundingBox){{x - 0.5f, y - 0.5f, z - 0.5f},
-                                      {x + 0.5f, y + 0.5f, z + 0.5f}});
                 }
             }
         }
