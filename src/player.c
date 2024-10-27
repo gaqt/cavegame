@@ -24,29 +24,6 @@ Vector3 PlayerGetCartesianLookRot(const Player *player) {
     };
 }
 
-void PlayerUpdateStandingState(Player *player) {
-    float blockPosX = player->pos.x + 0.5f;
-    float blockPosY = player->pos.y + 0.5f;
-    float blockPosZ = player->pos.z + 0.5f;
-
-    if (player->velocity.y <= 0.01 && blockPosX > 0 &&
-        blockPosX <= WORLD_X + 1.0f && blockPosY > 0 &&
-        blockPosY <= WORLD_Y + 1.0f && blockPosZ > 0 &&
-        blockPosZ <= WORLD_Z + 1.0f &&
-        WorldBlock(blockPosX, blockPosY - 1.5f, blockPosZ)) {
-
-        player->standing = true;
-        player->velocity.y = 0;
-        player->pos.y = -0.01f + floorf(blockPosY);
-        player->pos.y = -0.01f + floorf(blockPosY);
-    } else {
-        player->standing = false;
-        player->velocity.y -= GRAVITY;
-        if (player->velocity.y < -MAX_SPEED)
-            player->velocity.y = -MAX_SPEED;
-    }
-}
-
 void PlayerDoWalk(Player *player) {
     if (!player->standing)
         return;
@@ -80,7 +57,118 @@ void PlayerDoWalk(Player *player) {
     }
 
     if (IsKeyDown(KEY_SPACE)) {
-        player->velocity.y += 0.20f;
+        player->velocity.y += 0.15f;
+    }
+}
+
+void PlayerUpdateCollisionsFloor(Player *player) {
+    BoundingBox playerBox = PlayerGetBoundingBox(player);
+
+    playerBox.min.z += 0.05f;
+    playerBox.max.z -= 0.05f;
+    playerBox.min.x += 0.05f;
+    playerBox.max.x -= 0.05f;
+
+    BoundingBox floorBox1 = WorldBlockBoundingBox(
+        playerBox.min.x, playerBox.min.y, playerBox.min.z);
+    BoundingBox floorBox2 = WorldBlockBoundingBox(
+        playerBox.max.x, playerBox.min.y, playerBox.min.z);
+    BoundingBox floorBox3 = WorldBlockBoundingBox(
+        playerBox.max.x, playerBox.min.y, playerBox.max.z);
+    BoundingBox floorBox4 = WorldBlockBoundingBox(
+        playerBox.min.x, playerBox.min.y, playerBox.max.z);
+
+    if ((CheckCollisionBoxes(playerBox, floorBox1) ||
+         CheckCollisionBoxes(playerBox, floorBox2) ||
+         CheckCollisionBoxes(playerBox, floorBox3) ||
+         CheckCollisionBoxes(playerBox, floorBox4)) &&
+        player->velocity.y <= 0) {
+
+        player->standing = true;
+        player->velocity.y = 0;
+        player->pos.y = 0.495 + floorf(player->pos.y);
+        player->pos.y = 0.495 + floorf(player->pos.y);
+    } else {
+        player->standing = false;
+        player->velocity.y -= GRAVITY;
+        if (player->velocity.y < -MAX_SPEED)
+            player->velocity.y = -MAX_SPEED;
+    }
+}
+
+void PlayerUpdateCollisionsCeil(Player *player) {
+    BoundingBox playerBox = PlayerGetBoundingBox(player);
+
+    playerBox.min.z += 0.05f;
+    playerBox.max.z -= 0.05f;
+    playerBox.min.x += 0.05f;
+    playerBox.max.x -= 0.05f;
+
+    BoundingBox ceilBox1 = WorldBlockBoundingBox(
+        playerBox.min.x, playerBox.max.y, playerBox.min.z);
+    BoundingBox ceilBox2 = WorldBlockBoundingBox(
+        playerBox.max.x, playerBox.max.y, playerBox.min.z);
+    BoundingBox ceilBox3 = WorldBlockBoundingBox(
+        playerBox.max.x, playerBox.max.y, playerBox.max.z);
+    BoundingBox ceilBox4 = WorldBlockBoundingBox(
+        playerBox.min.x, playerBox.max.y, playerBox.max.z);
+
+    if ((CheckCollisionBoxes(playerBox, ceilBox1) ||
+         CheckCollisionBoxes(playerBox, ceilBox2) ||
+         CheckCollisionBoxes(playerBox, ceilBox3) ||
+         CheckCollisionBoxes(playerBox, ceilBox4)) &&
+        player->velocity.y > 0) {
+
+        player->velocity.y = 0;
+        player->pos.y = 0.795 + floorf(player->pos.y);
+        player->pos.y = 0.795 + floorf(player->pos.y);
+    }
+}
+
+void PlayerUpdateCollisionsSides(Player *player) {
+    BoundingBox playerBox = PlayerGetBoundingBox(player);
+
+    playerBox.min.y += 0.05f;
+    playerBox.max.y -= 0.05f;
+
+    for (float dx = 0.0f; dx <= 0.4f; dx += 0.4f) {
+        for (float dy = 0.0f; dy <= 2.0f; dy += 1.0f) {
+            for (float dz = 0.0f; dz <= 0.4f; dz += 0.4f) {
+                int blockX = playerBox.min.x + dx;
+                int blockY = playerBox.min.y + dy;
+                int blockZ = playerBox.min.z + dz;
+                BoundingBox blockBox =
+                    WorldBlockBoundingBox(blockX, blockY, blockZ);
+
+                if (!CheckCollisionBoxes(playerBox, blockBox))
+                    continue;
+
+                float distX = (float)blockX + 0.5f - player->pos.x;
+                float distZ = (float)blockZ + 0.5f - player->pos.z;
+
+                if (fabsf(distX) > fabsf(distZ)) {
+                    if (distX > 0 && player->velocity.x > 0) {
+                        player->velocity.x = 0;
+                        player->pos.x = -0.195f + ceilf(player->pos.x);
+                        player->pos.x = -0.195f + ceilf(player->pos.x);
+                    } else if (distX < 0 && player->velocity.x < 0) {
+                        player->velocity.x = 0;
+                        player->pos.x = +0.195f + floorf(player->pos.x);
+                        player->pos.x = +0.195f + floorf(player->pos.x);
+                    }
+                } else {
+                    if (distZ > 0 && player->velocity.z > 0) {
+                        player->velocity.z = 0;
+                        player->pos.z = -0.195f + ceilf(player->pos.z);
+                        player->pos.z = -0.195f + ceilf(player->pos.z);
+                    } else if (distZ < 0 && player->velocity.z < 0) {
+                        player->velocity.z = 0;
+                        player->pos.z = +0.195f + floorf(player->pos.z);
+                        player->pos.z = +0.195f + floorf(player->pos.z);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -108,9 +196,9 @@ void PlayerUpdatePos(Player *player) {
 
 void PlayerUpdateTargetBlock(Player *player) {
     player->targetBlock = (Vector3){player->pos.x + 1000, 0, 0};
-    float cx = player->pos.x + 0.5f;
-    float cy = player->pos.y + 0.5f;
-    float cz = player->pos.z + 0.5f;
+    float cx = player->pos.x;
+    float cy = player->pos.y;
+    float cz = player->pos.z;
 
     Vector3 lookRotC = PlayerGetCartesianLookRot(player);
 
@@ -150,19 +238,25 @@ void PlayerHandleInteractWithTargetBlock(Player *player) {
             (Vector2){(float)SCREEN_W / 2.0f, (float)SCREEN_H / 2.0f},
             PlayerGetCamera(player));
         RayCollision rayCollision = GetRayCollisionBox(
-            ray, (BoundingBox){{x - 0.5f, y - 0.5f, z - 0.5f},
-                               {x + 0.5f, y + 0.5f, z + 0.5f}});
+            ray, (BoundingBox){{x, y, z}, {x + 1.0f, y + 1.0f, z + 1.0f}});
 
         x += rayCollision.normal.x;
         y += rayCollision.normal.y;
         z += rayCollision.normal.z;
 
-        if (x > 0 && x <= WORLD_X && y > 0 && y <= WORLD_Y && z > 0 &&
-            z <= WORLD_Z) {
+        if (x < 0 || x > WORLD_X)
+            return;
+        if (y < 0 || y > WORLD_Y)
+            return;
+        if (z < 0 || z > WORLD_Z)
+            return;
 
-            SetWorldBlock(x, y, z, SPONGE);
-            player->targetBlock = (Vector3){player->pos.x + 1000, 0, 0};
-        }
+        BoundingBox blockBox = {{x, y, z}, {x + 1.0f, y + 1.0f, z + 1.0f}};
+        if (CheckCollisionBoxes(PlayerGetBoundingBox(player), blockBox))
+            return;
+
+        SetWorldBlock(x, y, z, SPONGE);
+        player->targetBlock = (Vector3){player->pos.x + 1000, 0, 0};
     }
 }
 
@@ -178,4 +272,14 @@ Camera PlayerGetCamera(const Player *player) {
                     .up = {0.0f, 1.0f, 0.0f},
                     .fovy = 80.0f,
                     .projection = CAMERA_PERSPECTIVE};
+}
+
+BoundingBox PlayerGetBoundingBox(const Player *player) {
+
+    return (BoundingBox){.min = {.x = player->pos.x - 0.20f,
+                                 .y = player->pos.y - 1.5f,
+                                 .z = player->pos.z - 0.20f},
+                         .max = {.x = player->pos.x + 0.20f,
+                                 .y = player->pos.y + 0.3f,
+                                 .z = player->pos.z + 0.20f}};
 }

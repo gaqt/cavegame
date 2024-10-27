@@ -45,6 +45,30 @@ BlockMaterial WorldBlock(const int x, const int y, const int z) {
     return world[x][y][z];
 }
 
+BlockMaterial WorldBlockSafe(const int x, const int y, const int z) {
+    if (x < 1 || x > WORLD_X)
+        return AIR;
+    if (y < 1 || y > WORLD_Y)
+        return AIR;
+    if (z < 1 || z > WORLD_Z)
+        return AIR;
+
+    return world[x][y][z];
+}
+
+BoundingBox WorldBlockBoundingBox(const int x, const int y, const int z) {
+
+    if (WorldBlockSafe(x, y, z) == AIR)
+        return (BoundingBox){{1000, 1000, 1000}, {1000, 1000, 1000}};
+
+    return (BoundingBox){.min = {x, y, z},
+                         .max = {
+                             .x = x + 1.0f,
+                             .y = y + 1.0f,
+                             .z = z + 1.0f,
+                         }};
+}
+
 void SetWorldBlock(const int x, const int y, const int z, BlockMaterial m) {
     world[x][y][z] = m;
 }
@@ -61,9 +85,11 @@ void RenderWorld(Vector3 targetBlock, Camera *camera, Model *spongeModel) {
                     continue;
 
                 if (world[x][y][z] == SPONGE) {
-                    DrawModel(*spongeModel, (Vector3){x, y, z}, 1, WHITE);
+                    DrawModel(*spongeModel,
+                              (Vector3){x + 0.5f, y + 0.5f, z + 0.5f}, 1,
+                              WHITE);
                 } else {
-                    DrawCube((Vector3){x, y, z}, 1, 1, 1,
+                    DrawCube((Vector3){x + 0.5f, y + 0.5f, z + 0.5f}, 1, 1, 1,
                              BlockMaterialColor(world[x][y][z]));
                 }
             }
@@ -71,7 +97,9 @@ void RenderWorld(Vector3 targetBlock, Camera *camera, Model *spongeModel) {
     }
 
     if (Vec3Dist(targetBlock, camera->position) < 5)
-        DrawCubeWires(targetBlock, 1, 1, 1, BLACK);
+        DrawCubeWires((Vector3){targetBlock.x + 0.5f, targetBlock.y + 0.5f,
+                                targetBlock.z + 0.5f},
+                      1, 1, 1, BLACK);
 
 #ifdef DEBUG
     // Draw axis

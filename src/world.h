@@ -19,5 +19,7 @@ typedef enum: char {
 void InitWorld();
 Color BlockMaterialColor(const BlockMaterial m);
 BlockMaterial WorldBlock(const int x, const int y, const int z);
+BlockMaterial WorldBlockSafe(const int x, const int y, const int z);
+BoundingBox WorldBlockBoundingBox(const int x, const int y, const int z);
 void SetWorldBlock(const int x, const int y, const int z, BlockMaterial m);
 void RenderWorld(Vector3 targetBlock, Camera *camera, Model *spongeModel);

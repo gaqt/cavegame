@@ -4,7 +4,7 @@ CFLAGS=-std=c23 -Wall -Wextra -Wpedantic
 EXECUTABLE=cavegame
 
 build:
-	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O3 -mtune=native
+	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -Ofast -mtune=native
 
 run: build
 	./$(EXECUTABLE)

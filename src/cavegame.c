@@ -13,6 +13,7 @@ float Vec3Dist(const Vector3 a, const Vector3 b) {
 }
 
 void DrawDebug(Player *player);
+void DrawDebug3D(Player *player);
 
 // ------------------------------------------
 
@@ -39,9 +40,11 @@ int main(void) {
 
         // ---- Update ----
 
-        PlayerUpdateStandingState(&player);
-        PlayerDoWalk(&player);
+        PlayerUpdateCollisionsFloor(&player);
         PlayerDoMouseLook(&player);
+        PlayerDoWalk(&player);
+        PlayerUpdateCollisionsCeil(&player);
+        PlayerUpdateCollisionsSides(&player);
         PlayerUpdatePos(&player);
         PlayerUpdateTargetBlock(&player);
         PlayerHandleInteractWithTargetBlock(&player);
@@ -56,6 +59,9 @@ int main(void) {
         BeginMode3D(camera);
 
         RenderWorld(player.targetBlock, &camera, &spongeModel);
+#ifdef DEBUG
+        DrawDebug3D(&player);
+#endif
 
         EndMode3D();
 
@@ -96,4 +102,9 @@ void DrawDebug(Player *player) {
     DrawText(TextFormat("- Rotation: (%06.3f, %06.3f)", player->lookRot.x,
                         player->lookRot.y),
              610, 75, 10, BLACK);
+}
+
+void DrawDebug3D(Player *player) {
+    BoundingBox box = PlayerGetBoundingBox(player);
+    DrawBoundingBox(box, BLACK);
 }
