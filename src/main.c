@@ -25,7 +25,7 @@ typedef enum {
     GRASS,
     GRASS_2,
     GRASS_3,
-    CLAY,
+    SPONGE,
 } BlockMaterial;
 
 __attribute__((const)) Color BlockMaterialColor(const BlockMaterial m) {
@@ -44,8 +44,8 @@ __attribute__((const)) Color BlockMaterialColor(const BlockMaterial m) {
         return (Color){0, 217, 44, 255};
     case GRASS_3:
         return (Color){0, 210, 40, 255};
-    case CLAY:
-        return DARKGRAY;
+    case SPONGE:
+        return YELLOW;
     }
 
     // should never happen
@@ -64,7 +64,6 @@ __attribute__((const)) Vector3 CameraRotUnit(const Vector3 pos,
     return rot;
 }
 
-
 int main() {
     srand(time(NULL));
 
@@ -73,6 +72,13 @@ int main() {
 
     InitWindow(width, height, "logemi's cavegame");
     SetTargetFPS(60);
+
+    Image spongeImage = LoadImage("assets/sponge.png");
+    Texture2D spongeTexture = LoadTextureFromImage(spongeImage);
+
+    Mesh cube = GenMeshCube(1.0f, 1.0f, 1.0f);
+    Model spongeModel = LoadModelFromMesh(cube);
+    spongeModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = spongeTexture;
 
     BlockMaterial world[WORLD_X + 2][WORLD_Y + 2][WORLD_Z + 2] = {AIR};
     for (int x = 1; x <= WORLD_X; x++) {
@@ -206,10 +212,10 @@ int main() {
         float cy = POSY;
         float cz = POSZ;
 
-        for (int i = 0; i < 40; i++) {
-            cx += camRot.x / 8;
-            cy += camRot.y / 8;
-            cz += camRot.z / 8;
+        for (int i = 0; i < 120; i++) {
+            cx += camRot.x / 20;
+            cy += camRot.y / 20;
+            cz += camRot.z / 20;
             if (cx < 0 || cy < 0 || cz < 0)
                 break;
             if (cx > WORLD_X || cy > WORLD_Y || cz > WORLD_Z)
@@ -228,6 +234,30 @@ int main() {
             int z = targetBlock.z;
             world[x][y][z] = AIR;
             targetBlock = (Vector3){camera.position.x + 1000, 0, 0};
+        }
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) &&
+            Vec3Dist(targetBlock, camera.position) < 5) {
+
+            int x = targetBlock.x;
+            int y = targetBlock.y;
+            int z = targetBlock.z;
+            Ray ray = GetScreenToWorldRay(
+                (Vector2){(float)width / 2.0f, (float)height / 2.0f}, camera);
+            RayCollision rayCollision = GetRayCollisionBox(
+                ray, (BoundingBox){{x - 0.5f, y - 0.5f, z - 0.5f},
+                                   {x + 0.5f, y + 0.5f, z + 0.5f}});
+
+            x += rayCollision.normal.x;
+            y += rayCollision.normal.y;
+            z += rayCollision.normal.z;
+
+            if (x > 0 && x <= WORLD_X && y > 0 && y <= WORLD_Y && z > 0 &&
+                z <= WORLD_Z) {
+
+                world[x][y][z] = SPONGE;
+                targetBlock = (Vector3){camera.position.x + 1000, 0, 0};
+            }
         }
 
         // ---- Draw ----
@@ -251,8 +281,12 @@ int main() {
                         world[x][y][z - 1] && world[x][y][z + 1])
                         continue;
 
-                    DrawCube((Vector3){x, y, z}, 1, 1, 1,
-                             BlockMaterialColor(world[x][y][z]));
+                    if (world[x][y][z] == SPONGE) {
+                        DrawModel(spongeModel, (Vector3){x,y,z}, 1, WHITE);
+                    } else {
+                        DrawCube((Vector3){x, y, z}, 1, 1, 1,
+                                 BlockMaterialColor(world[x][y][z]));
+                    }
                 }
             }
         }
@@ -304,6 +338,8 @@ int main() {
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
+
+    UnloadTexture(spongeTexture);
 
     CloseWindow();
 

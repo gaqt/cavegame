@@ -7,7 +7,9 @@ in C with raylib
 ### TODO
 
 - [ ] side collisions
-- [ ] block placing
+- [X] block placing
 - [ ] world y wrap
 - [X] fix gravity collisions
 - [X] walk sideways
+- [ ] fix block selection raycasting
+- [ ] fix untargetable blocks when too high
