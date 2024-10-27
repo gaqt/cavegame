@@ -1,5 +1,5 @@
 LIBS=-lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-SRCS=src/main.c
+SRCS=src/cavegame.c src/player.c src/world.c
 CFLAGS=-Wall -Wextra -Wpedantic
 EXECUTABLE=cavegame
 
