@@ -68,13 +68,13 @@ void PlayerDoWalk(Player *player) {
     }
 
     if (IsKeyDown(KEY_A)) {
-        float theta2 = atan2f(vx, vz) + M_PI / 2.0f;
+        float theta2 = atan2f(vx, vz) + PI / 2.0f;
         player->velocity.x += sinf(theta2) * WALK_SPEED;
         player->velocity.z += cosf(theta2) * WALK_SPEED;
     }
 
     if (IsKeyDown(KEY_D)) {
-        float theta2 = atan2f(vx, vz) - M_PI / 2.0f;
+        float theta2 = atan2f(vx, vz) - PI / 2.0f;
         player->velocity.x += sinf(theta2) * WALK_SPEED;
         player->velocity.z += cosf(theta2) * WALK_SPEED;
     }
@@ -89,15 +89,15 @@ void PlayerDoMouseLook(Player *player) {
     player->lookRot.y += mouseDelta.y * CAMERA_SENS;
     player->lookRot.x -= mouseDelta.x * CAMERA_SENS;
 
-    if (player->lookRot.y < 0.02 * M_PI)
-        player->lookRot.y = 0.02 * M_PI;
-    else if (player->lookRot.y > 0.98 * M_PI)
-        player->lookRot.y = 0.98 * M_PI;
+    if (player->lookRot.y < 0.02 * PI)
+        player->lookRot.y = 0.02 * PI;
+    else if (player->lookRot.y > 0.98 * PI)
+        player->lookRot.y = 0.98 * PI;
 
     if (player->lookRot.x < 0.0f)
-        player->lookRot.x += 2.0f * M_PI;
-    else if (player->lookRot.x > 2.0f * M_PI)
-        player->lookRot.x -= 2.0f * M_PI;
+        player->lookRot.x += 2.0f * PI;
+    else if (player->lookRot.x > 2.0f * PI)
+        player->lookRot.x -= 2.0f * PI;
 }
 
 void PlayerUpdatePos(Player *player) {

@@ -5,7 +5,7 @@
 #define WORLD_Y 24
 #define WORLD_Z 32
 
-typedef enum {
+typedef enum: char {
     AIR = 0,
     ROCK,
     ROCK_2,

@@ -1,14 +1,14 @@
 LIBS=-lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 SRCS=src/cavegame.c src/player.c src/world.c
-CFLAGS=-Wall -Wextra -Wpedantic
+CFLAGS=-std=c23 -Wall -Wextra -Wpedantic
 EXECUTABLE=cavegame
 
 build:
-	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O3
+	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O3 -mtune=native
 
 run: build
 	./$(EXECUTABLE)
 
 debug:
-	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O0 -ftrapv -D DEBUG
+	cc -o $(EXECUTABLE) $(SRCS) $(LIBS) $(CFLAGS) -O0 -ftrapv -g3 -ggdb -D DEBUG
 	./$(EXECUTABLE)
