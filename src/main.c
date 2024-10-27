@@ -13,9 +13,9 @@
 #define WORLD_Y 24
 #define WORLD_Z 32
 #define GRAVITY 0.01f
-#define MAX_SPEED 2.0f
+#define MAX_SPEED 3.0f
 #define WALK_SPEED 0.09f
-#define CAMERA_SENS 0.09f
+#define CAMERA_SENS 0.002f
 
 typedef enum {
     AIR = 0,
@@ -64,6 +64,7 @@ __attribute__((const)) Vector3 CameraRotUnit(const Vector3 pos,
     return rot;
 }
 
+
 int main() {
     srand(time(NULL));
 
@@ -80,7 +81,7 @@ int main() {
                 world[x][y][z] = ROCK + rand() % 3;
             }
         }
-        for (int z = 1; z < WORLD_Z; z++) {
+        for (int z = 1; z <= WORLD_Z; z++) {
             world[x][WORLD_Y - 5][z] = GRASS + rand() % 3;
         }
     }
@@ -108,8 +109,9 @@ int main() {
 
         // check if standing on ground
         bool standing;
-        if (velocity.y <= 0.01 && POSX > 0 && POSX < WORLD_X && POSY > 0 &&
-            POSY < WORLD_Y && POSZ > 0 && POSZ < WORLD_Z &&
+        if (velocity.y <= 0.01 && POSX > 0 && POSX <= WORLD_X + 1.0f &&
+            POSY > 0 && POSY <= WORLD_Y + 1.0f && POSZ > 0 &&
+            POSZ <= WORLD_Z + 1.0f &&
             world[(int)POSX][(int)(POSY - 1.5f)][(int)POSZ]) {
 
             standing = true;
@@ -163,13 +165,32 @@ int main() {
             }
         }
 
-        UpdateCameraPro(&camera, (Vector3){0, 0, 0},
-                        (Vector3){
-                            GetMouseDelta().x * CAMERA_SENS, // Rotation: yaw
-                            GetMouseDelta().y * CAMERA_SENS, // Rotation: pitch
-                            0.0f                             // Rotation: roll
-                        },
-                        0);
+        {
+            Vector2 mouseDelta = GetMouseDelta();
+            float deltaRotX = mouseDelta.x * CAMERA_SENS;
+            float deltaRotY = mouseDelta.y * CAMERA_SENS;
+            float x = camRot.x, y = camRot.y, z = camRot.z;
+            float phi = atan2f(x, z);
+            float h = sqrtf(powf(x, 2) + powf(z, 2));
+            float theta = atan2f(h, y);
+
+            theta += deltaRotY;
+            phi -= deltaRotX;
+
+            if (theta < 0.02 * M_PI)
+                theta = 0.02 * M_PI;
+            else if (theta > 0.98 * M_PI)
+                theta = 0.98 * M_PI;
+
+            y = cosf(theta);
+            h = sinf(theta);
+            z = h * cosf(phi);
+            x = h * sinf(phi);
+
+            camera.target.x = camera.position.x + x;
+            camera.target.y = camera.position.y + y;
+            camera.target.z = camera.position.z + z;
+        }
 
         // update velocity
         camera.position.x += velocity.x;
