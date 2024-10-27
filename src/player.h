@@ -7,17 +7,20 @@
 #define CAMERA_SENS 0.002f
 
 typedef struct {
-    Camera camera;
+    Vector3 pos;
+    Vector2 lookRot;
     Vector3 velocity;
     Vector3 targetBlock;
     bool standing;
 } Player;
 
 Player InitPlayer(const float x, const float y, const float z);
-Vector3 CameraRotUnit(const Player *player);
+// Vector3 CameraRotUnit(const Player *player);
+Vector3 PlayerGetCartesianLookRot(const Player *player);
 void PlayerUpdateStandingState(Player *player);
 void PlayerDoWalk(Player *player);
 void PlayerDoMouseLook(Player *player);
 void PlayerUpdatePos(Player *player);
 void PlayerUpdateTargetBlock(Player *player);
 void PlayerHandleInteractWithTargetBlock(Player *player);
+Camera PlayerGetCamera(const Player *player);

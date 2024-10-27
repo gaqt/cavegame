@@ -13,3 +13,4 @@ in C with raylib
 - [X] walk sideways
 - [ ] fix block selection raycasting
 - [ ] fix untargetable blocks when too high
+- [ ] optimize rendering

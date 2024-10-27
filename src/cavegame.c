@@ -12,7 +12,11 @@ float Vec3Dist(const Vector3 a, const Vector3 b) {
     return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2) + pow(a.z - b.z, 2));
 }
 
-int main() {
+void DrawDebug(Player *player);
+
+// ------------------------------------------
+
+int main(void) {
     srand(time(NULL));
 
     InitWindow(SCREEN_W, SCREEN_H, "logemi's cavegame");
@@ -47,10 +51,11 @@ int main() {
         BeginDrawing();
 
         ClearBackground(SKYBLUE);
+        Camera camera = PlayerGetCamera(&player);
 
-        BeginMode3D(player.camera);
+        BeginMode3D(camera);
 
-        RenderWorld(player.targetBlock, &player.camera, &spongeModel);
+        RenderWorld(player.targetBlock, &camera, &spongeModel);
 
         EndMode3D();
 
@@ -63,40 +68,32 @@ int main() {
                          WHITE);
 
 #ifdef DEBUG
-        DrawFPS(10, 10);
-
-        Vector3 camRot = CameraRotUnit(&player);
-
-        // Draw info boxes
-        DrawRectangle(600, 5, 195, 120, Fade(SKYBLUE, 0.5f));
-        DrawRectangleLines(600, 5, 195, 120, BLUE);
-
-        DrawText("Camera status:", 610, 15, 10, BLACK);
-        DrawText(TextFormat("- Position: (%06.3f, %06.3f, %06.3f)",
-                            player.camera.position.x, player.camera.position.y,
-                            player.camera.position.z),
-                 610, 60, 10, BLACK);
-        DrawText(TextFormat("- Target: (%06.3f, %06.3f, %06.3f)",
-                            player.camera.target.x, player.camera.target.y,
-                            player.camera.target.z),
-                 610, 75, 10, BLACK);
-        DrawText(TextFormat("- Up: (%06.3f, %06.3f, %06.3f)",
-                            player.camera.up.x, player.camera.up.y,
-                            player.camera.up.z),
-                 610, 90, 10, BLACK);
-        DrawText(TextFormat("- Rot: (%06.3f, %06.3f, %06.3f)", camRot.x,
-                            camRot.y, camRot.z),
-                 610, 105, 10, BLACK);
-
+        DrawDebug(&player);
 #endif
 
         EndDrawing();
-        //----------------------------------------------------------------------------------
     }
 
     UnloadTexture(spongeTexture);
-
     CloseWindow();
 
     return 0;
+}
+
+// ------------------------------------------
+
+void DrawDebug(Player *player) {
+    DrawFPS(10, 10);
+
+    // Draw info boxes
+    DrawRectangle(600, 5, 195, 120, Fade(SKYBLUE, 0.5f));
+    DrawRectangleLines(600, 5, 195, 120, BLUE);
+
+    DrawText("Camera status:", 610, 15, 10, BLACK);
+    DrawText(TextFormat("- Position: (%06.3f, %06.3f, %06.3f)", player->pos.x,
+                        player->pos.y, player->pos.z),
+             610, 60, 10, BLACK);
+    DrawText(TextFormat("- Rotation: (%06.3f, %06.3f)", player->lookRot.x,
+                        player->lookRot.y),
+             610, 75, 10, BLACK);
 }
