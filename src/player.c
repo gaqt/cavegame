@@ -24,40 +24,82 @@ Vector3 PlayerGetCartesianLookRot(const Player *player) {
     };
 }
 
-void PlayerDoWalk(Player *player) {
-    if (!player->standing)
-        return;
+void PlayerUpdateEnvironmentForces(Player *player) {
 
-    player->velocity.x = 0.0f;
-    player->velocity.z = 0.0f;
+    float dx = 0.0f;
+    float dy = 0.0f;
+    float dz = 0.0f;
+
+    dx -= (!signbit(player->velocity.x) * 2.0f - 1.0f) *
+          powf(player->velocity.x, 2) * AIR_DRAG;
+    dy -= (!signbit(player->velocity.y) * 2.0f - 1.0f) *
+          powf(player->velocity.y, 2) * AIR_DRAG;
+    dz -= (!signbit(player->velocity.z) * 2.0f - 1.0f) *
+          powf(player->velocity.z, 2) * AIR_DRAG;
+
+    if (player->standing) {
+        dx -= player->velocity.x * FRICTION_D;
+        dz -= player->velocity.z * FRICTION_D;
+    } else {
+        dy -= GRAVITY;
+    }
+
+    player->velocity.x += dx;
+    player->velocity.y += dy;
+    player->velocity.z += dz;
+
+    if (player->standing && sqrtf(powf(player->velocity.x, 2) +
+                                  powf(player->velocity.z, 2)) < FRICTION_S) {
+
+        player->velocity.x = 0.0f;
+        player->velocity.z = 0.0f;
+    }
+}
+
+void PlayerDoWalk(Player *player) {
 
     float vx = sinf(player->lookRot.x);
     float vz = cosf(player->lookRot.x);
+    float walkX = 0.0f;
+    float walkZ = 0.0f;
 
     if (IsKeyDown(KEY_W)) {
-        player->velocity.x += vx * WALK_SPEED;
-        player->velocity.z += vz * WALK_SPEED;
+        walkX += vx;
+        walkZ += vz;
     }
 
     if (IsKeyDown(KEY_S)) {
-        player->velocity.x += -vx * WALK_SPEED;
-        player->velocity.z += -vz * WALK_SPEED;
+        walkX += -vx;
+        walkZ += -vz;
     }
 
     if (IsKeyDown(KEY_A)) {
         float theta2 = atan2f(vx, vz) + PI / 2.0f;
-        player->velocity.x += sinf(theta2) * WALK_SPEED;
-        player->velocity.z += cosf(theta2) * WALK_SPEED;
+        walkX += sinf(theta2);
+        walkZ += cosf(theta2);
     }
 
     if (IsKeyDown(KEY_D)) {
         float theta2 = atan2f(vx, vz) - PI / 2.0f;
-        player->velocity.x += sinf(theta2) * WALK_SPEED;
-        player->velocity.z += cosf(theta2) * WALK_SPEED;
+        walkX += sinf(theta2);
+        walkZ += cosf(theta2);
     }
 
-    if (IsKeyDown(KEY_SPACE)) {
-        player->velocity.y += 0.15f;
+    float magnitude = sqrtf(powf(walkX, 2) + powf(walkZ, 2));
+    if (magnitude > 1.0f) {
+        walkX /= magnitude;
+        walkZ /= magnitude;
+    }
+
+    if (player->standing) {
+        player->velocity.x += walkX * WALK_SPEED;
+        player->velocity.z += walkZ * WALK_SPEED;
+        if (IsKeyDown(KEY_SPACE)) {
+            player->velocity.y += 0.15f;
+        }
+    } else {
+        player->velocity.x += walkX * AIR_SPEED;
+        player->velocity.z += walkZ * AIR_SPEED;
     }
 }
 
@@ -90,9 +132,6 @@ void PlayerUpdateCollisionsFloor(Player *player) {
         player->pos.y = 0.495 + floorf(player->pos.y);
     } else {
         player->standing = false;
-        player->velocity.y -= GRAVITY;
-        if (player->velocity.y < -MAX_SPEED)
-            player->velocity.y = -MAX_SPEED;
     }
 }
 
@@ -251,8 +290,15 @@ void PlayerHandleInteractWithTargetBlock(Player *player) {
         if (z < 0 || z > WORLD_Z)
             return;
 
+        BoundingBox playerBox = PlayerGetBoundingBox(player);
+        playerBox.min.x += 0.05;
+        playerBox.min.y += 0.05;
+        playerBox.min.z += 0.05;
+        playerBox.max.x -= 0.05;
+        playerBox.max.y -= 0.05;
+        playerBox.max.z -= 0.05;
         BoundingBox blockBox = {{x, y, z}, {x + 1.0f, y + 1.0f, z + 1.0f}};
-        if (CheckCollisionBoxes(PlayerGetBoundingBox(player), blockBox))
+        if (CheckCollisionBoxes(playerBox, blockBox))
             return;
 
         SetWorldBlock(x, y, z, SPONGE);

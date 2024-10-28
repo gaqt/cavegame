@@ -42,6 +42,7 @@ int main(void) {
 
         PlayerUpdateCollisionsFloor(&player);
         PlayerDoMouseLook(&player);
+        PlayerUpdateEnvironmentForces(&player);
         PlayerDoWalk(&player);
         PlayerUpdateCollisionsCeil(&player);
         PlayerUpdateCollisionsSides(&player);

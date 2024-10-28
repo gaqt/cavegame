@@ -1,10 +1,9 @@
 #pragma once
 #include "../lib/raylib/raylib.h"
 
-#define GRAVITY 0.01f
-#define MAX_SPEED 3.0f
-#define WALK_SPEED 0.07f
+#define WALK_SPEED 0.015f
 #define CAMERA_SENS 0.002f
+#define AIR_SPEED 0.0013f
 
 typedef struct {
     Vector3 pos;
@@ -16,6 +15,7 @@ typedef struct {
 
 Player InitPlayer(const float x, const float y, const float z);
 Vector3 PlayerGetCartesianLookRot(const Player *player);
+void PlayerUpdateEnvironmentForces(Player *player);
 void PlayerDoWalk(Player *player);
 void PlayerUpdateCollisionsFloor(Player *player);
 void PlayerUpdateCollisionsCeil(Player *player);
