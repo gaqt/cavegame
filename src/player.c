@@ -6,7 +6,7 @@
 Player InitPlayer(const float x, const float y, const float z) {
     return (Player){
         .pos = {x, y, z},
-        .lookRot = {0, 1},
+        .lookRot = {0, PI / 2},
         .velocity = {0, 0, 0},
         .targetBlock = {x + 1000, y, z},
         .standing = false,
