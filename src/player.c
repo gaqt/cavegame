@@ -170,9 +170,9 @@ void PlayerUpdateCollisionsSides(Player *player) {
     playerBox.min.y += 0.05f;
     playerBox.max.y -= 0.05f;
 
-    for (float dx = 0.0f; dx <= 0.4f; dx += 0.4f) {
-        for (float dy = 0.05f; dy <= 1.75f; dy += 1.7f / 2.0f) {
-            for (float dz = 0.0f; dz <= 0.4f; dz += 0.4f) {
+    for (float dx = 0.0f; dx <= 0.41f; dx += 0.4f) {
+        for (float dy = 0.05f; dy <= 1.76f; dy += 1.7f / 2.0f) {
+            for (float dz = 0.0f; dz <= 0.41f; dz += 0.4f) {
                 int blockX = playerBox.min.x + dx;
                 int blockY = playerBox.min.y + dy;
                 int blockZ = playerBox.min.z + dz;
