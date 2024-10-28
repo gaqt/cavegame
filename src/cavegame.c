@@ -31,7 +31,7 @@ int main(void) {
     spongeModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = spongeTexture;
 
     InitWorld();
-    Player player = InitPlayer(5, WORLD_Y - 2, 5);
+    Player player = InitPlayer(5, (float)WORLD_Y / 2 + 4, 5);
 
     DisableCursor();
     SetTargetFPS(60);

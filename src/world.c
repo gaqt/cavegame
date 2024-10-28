@@ -6,13 +6,13 @@ BlockMaterial world[WORLD_X + 2][WORLD_Y + 2][WORLD_Z + 2] = {AIR};
 
 void InitWorld() {
     for (int x = 1; x <= WORLD_X; x++) {
-        for (int y = 1; y <= WORLD_Y - 6; y++) {
+        for (int y = 1; y <= WORLD_Y / 2; y++) {
             for (int z = 1; z <= WORLD_Z; z++) {
                 world[x][y][z] = ROCK + rand() % 3;
             }
         }
         for (int z = 1; z <= WORLD_Z; z++) {
-            world[x][WORLD_Y - 5][z] = GRASS + rand() % 3;
+            world[x][WORLD_Y / 2 + 1][z] = GRASS + rand() % 3;
         }
     }
 }

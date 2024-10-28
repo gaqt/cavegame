@@ -2,7 +2,7 @@
 #include "../lib/raylib/raylib.h"
 
 #define WORLD_X 32
-#define WORLD_Y 24
+#define WORLD_Y 32
 #define WORLD_Z 32
 #define GRAVITY 0.01f
 #define AIR_DRAG 0.005f
