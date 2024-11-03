@@ -1,5 +1,5 @@
 #pragma once
-#include "../lib/raylib/raylib.h"
+#include <raylib.h>
 
 #define WORLD_X 32
 #define WORLD_Y 32

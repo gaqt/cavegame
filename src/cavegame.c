@@ -1,6 +1,6 @@
 #include "cavegame.h"
-#include "../lib/raylib/raylib.h"
-#include "../lib/raylib/rcamera.h"
+#include <raylib.h>
+#include <rcamera.h>
 #include "player.h"
 #include "world.h"
 #include <math.h>

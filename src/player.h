@@ -1,5 +1,5 @@
 #pragma once
-#include "../lib/raylib/raylib.h"
+#include <raylib.h>
 
 #define WALK_SPEED 0.015f
 #define CAMERA_SENS 0.002f

@@ -1,5 +1,5 @@
 #pragma once
-#include "../lib/raylib/raylib.h"
+#include <raylib.h>
 
 #define SCREEN_W 1000
 #define SCREEN_H 800
